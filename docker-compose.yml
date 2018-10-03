@@ -1,0 +1,57 @@
+version: '3'
+
+services:
+  webserver:
+    hostname: webserver
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    links:
+      - react
+    depends_on:
+      - react
+    ports:
+      - "9000:80"
+
+  react:
+    hostname: react
+    build:
+      context: ./react
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV=development
+    environment:
+       - "NODE_ENV=development"
+    volumes:
+      - ./react:/usr/src/app
+      - /usr/src/app/node_modules
+
+  flask:
+    hostname: flask
+    build:
+      context: ./flask
+      dockerfile: Dockerfile
+    links:
+      - mysql
+    command: ./run.sh
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=0
+    volumes:
+      - ./flask:/usr/src/app
+
+  mysql:
+    hostname: db
+    image: mysql:5.7.18
+    ports:
+      - "32000:3306"
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - MYSQL_USER=wyadmin
+      - MYSQL_PASSWORD=EOGWY_2017
+      - MYSQL_DATABASE=wyoming
+      - PYTHONUNBUFFERED=0
+    volumes:
+      #- ./mysql/dbdump.sql:/docker-entrypoint-initdb.d/dbdump.sql
+      - /var/lib/mysql
